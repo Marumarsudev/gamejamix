@@ -6,8 +6,6 @@ public class PlayerController : MonoBehaviour
 {
     public GameObject mainCamera;
 
-    public GameObject gun;
-
     public Animator animator;
 
     public float cameraMaxUpAngle = -80f;
@@ -29,10 +27,10 @@ public class PlayerController : MonoBehaviour
 
     private float pitch = 0f;
 
+    private float sprint = 1f;
 
     void Start()
     {
-        gunPos = gun.transform.position;
         Cursor.lockState = CursorLockMode.Locked;
         body = GetComponent<Rigidbody>();
     }
@@ -41,6 +39,8 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         Inputs();
+
+        Animations();
     }
 
     void OnCollisionEnter(Collision col)
@@ -51,6 +51,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void Animations()
+    {
+    }
 
     private void Inputs()
     {
@@ -70,10 +73,8 @@ public class PlayerController : MonoBehaviour
             temp.y = 0;
             temp1.y = 0;
 
-            if(body.velocity.magnitude < speed * Time.deltaTime)
-            {
-                body.AddForce(((Input.GetAxisRaw("Vertical") * temp) + (Input.GetAxisRaw("Horizontal") * temp1)).normalized * acceleration * Time.deltaTime);
-            }
+            body.velocity += (((Input.GetAxisRaw("Vertical") * temp) + (Input.GetAxisRaw("Horizontal") * temp1)).normalized * acceleration * sprint * Time.deltaTime);
+            body.velocity.Set(Mathf.Clamp(body.velocity.x, 0, 5 * Time.deltaTime), body.velocity.y, Mathf.Clamp(body.velocity.z, 0, 5 * Time.deltaTime));
         }
 
         if(Input.GetAxisRaw("Jump") != 0 && !jumped)
@@ -85,6 +86,18 @@ public class PlayerController : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.R))
         {
             animator.SetTrigger("Reload");
+        }
+
+        if(Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            animator.SetBool("Sprinting", true);
+            sprint = 2.5f;
+        }
+
+        if(Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            animator.SetBool("Sprinting", false);
+            sprint = 1f;
         }
 
         if(Input.GetButtonDown("Fire1"))
